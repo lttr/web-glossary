@@ -2,6 +2,7 @@
 
 body {
   font-family: 'Open Sans', sans-serif;
+  overflow-y: scroll;
 }
 
 /* main */
@@ -22,7 +23,7 @@ body {
   text-align: center;
 }
 
-.search {
+.search-box {
   display: flex;
   justify-content: center;
 }
@@ -58,4 +59,9 @@ body {
   margin: 3px;
   border-radius: 3px;
   background-color: #ddd;
+}
+
+.tag:hover {
+  cursor: pointer;
+  background-color: #bbb;
 }

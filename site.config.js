@@ -1,4 +1,4 @@
 module.exports = {
-  title: 'Glossary',
-  heading: 'ContPort',
+  title: 'Web glossary',
+  heading: 'Web glossary',
 }

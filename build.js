@@ -31,16 +31,18 @@ const process = async () => {
     const metadata = frontMatter(markdownText)
     const html = marked(metadata.body)
     items.push({
-      props: metadata.attributes,
+      ...metadata.attributes,
       html,
     })
   })
 
   const data = { site: siteConfig, items }
   const layout = renderIndexHtml(data)
+  const serializedData = JSON.stringify(data)
 
   await fse.mkdirs(distPath)
   await fse.writeFile(`${distPath}/index.html`, layout)
+  await fse.writeFile(`${distPath}/${assetsDir}/data.json`, serializedData)
 }
 
 const template = require(`${templatesPath}/index.js`)
@@ -49,13 +51,11 @@ const renderIndexHtml = (data) => template(viperHTML.wire(), data)
 process()
 
 // const exampleItem = {
-//   props: {
-//     name: 'Example term',
-//     alternative: 'ET, Test term',
-//     created: '2018-09-25T00:00:00.000Z',
-//     edited: '2018-09-25T00:00:00.000Z',
-//     tags: 'example, test',
-//     resources: ['https://example.com/', 'https://example.org/'],
-//   },
+//   name: 'Example term',
+//   alternative: 'ET, Test term',
+//   created: '2018-09-25T00:00:00.000Z',
+//   edited: '2018-09-25T00:00:00.000Z',
+//   tags: 'example, test',
+//   resources: ['https://example.com/', 'https://example.org/'],
 //   html: '...',
 // }
