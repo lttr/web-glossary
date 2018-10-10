@@ -14,7 +14,7 @@ body {
 }
 
 .main-content {
-  min-width: 60%;
+  min-width: 50%;
   max-width: 100%;
   width: calc((600px - 100%) * 600);
 }
@@ -64,4 +64,17 @@ body {
 .tag:hover {
   cursor: pointer;
   background-color: #bbb;
+}
+
+.date {
+  margin: 3px;
+  color: #bbb;
+}
+
+/* utils */
+
+.side-by-side {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
 }

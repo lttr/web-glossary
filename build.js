@@ -1,26 +1,32 @@
-const fse = require('fs-extra')
 const { promisify } = require('util')
-const glob = promisify(require('glob'))
-const siteConfig = require('./site.config')
-const frontMatter = require('front-matter')
-const marked = require('marked')
 
+const frontMatter = require('front-matter')
+const fse = require('fs-extra')
+const glob = promisify(require('glob'))
+const marked = require('marked')
+const path = require('path')
 const viperHTML = require('viperhtml')
 
-const distPath = './public'
-const templatesPath = './templates'
-const assetsDir = 'assets'
-const contentDir = 'content'
+const glossaryConfig = require('./glossary.config.json')
 
-const process = async () => {
+const templatesPath = path.join(__dirname, 'templates')
+const assetsDir = path.join(__dirname, 'assets')
+const distPath = path.join(process.cwd(), 'public')
+const contentDir = path.join(process.cwd(), 'content')
+
+const build = async () => {
   // clear destination folder
   await fse.emptyDir(distPath)
 
-  // copy assets folder
-  await fse.copy(assetsDir, `${distPath}/${assetsDir}`)
+  // copy assets to dist folder
+  await fse.copy(assetsDir, `${distPath}`)
 
-  await fse.copy(contentDir, distPath)
+  // copy content assets to dist folder (images, etc.)
+  await fse.copy(contentDir, distPath, {
+    filter: (src) => !src.endsWith('.md'),
+  })
 
+  // load content markdown files
   const contentFiles = await glob('**/*.md', {
     cwd: contentDir,
   })
@@ -36,19 +42,19 @@ const process = async () => {
     })
   })
 
-  const data = { site: siteConfig, items }
+  const data = { site: glossaryConfig, items }
   const layout = renderIndexHtml(data)
   const serializedData = JSON.stringify(data)
 
   await fse.mkdirs(distPath)
   await fse.writeFile(`${distPath}/index.html`, layout)
-  await fse.writeFile(`${distPath}/${assetsDir}/data.json`, serializedData)
+  await fse.writeFile(`${distPath}/data.json`, serializedData)
 }
 
 const template = require(`${templatesPath}/index.js`)
 const renderIndexHtml = (data) => template(viperHTML.wire(), data)
 
-process()
+build()
 
 // const exampleItem = {
 //   name: 'Example term',

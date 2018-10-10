@@ -1,8 +1,7 @@
 ---
 name: Example term
-alternative: ET, Test term
-created: 2018-09-25
-edited: 2018-09-25
+created: 2018-09-24
+updated: 2018-09-24
 tags: 
  - example
  - test

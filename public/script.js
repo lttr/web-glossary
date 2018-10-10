@@ -13,6 +13,17 @@ let originalItems
 
 // Local actions
 
+// const byUpdatedDateDesc = (itemA, itemB) => itemA.updated < itemB.updated
+
+const byName = (itemA, itemB) => itemA.name > itemB.name
+
+const contains = (sourceString, searchString) =>
+  sourceString.toLocaleLowerCase().includes(searchString.toLocaleLowerCase())
+
+const setLocationHashTag = (text) => (location.hash = `#/${encodeURIComponent(text)}`)
+
+const getLocationHash = () => decodeURIComponent(location.hash.substring(2))
+
 const doSearch = (items, value) => {
   const searchString = value.trim()
   const newItems = items.map((item) => {
@@ -23,7 +34,7 @@ const doSearch = (items, value) => {
       const searchTokenNoFlag = searchString.substring(1)
       const regexp = new RegExp(`(${searchTokenNoFlag})`, 'gi')
       newItem.tags = item.tags.map((tag) => {
-        if (tag.toLocaleLowerCase().includes(searchTokenNoFlag.toLocaleLowerCase())) {
+        if (contains(tag, searchTokenNoFlag)) {
           found = true
           return tag.replace(regexp, highlightString)
         }
@@ -32,7 +43,7 @@ const doSearch = (items, value) => {
     } else {
       const regexp = new RegExp(`(${searchString})`, 'gi')
       searchableKeys.forEach((key) => {
-        if (item[key].toLocaleLowerCase().includes(searchString.toLocaleLowerCase())) {
+        if (item[key] && contains(item[key], searchString)) {
           found = true
           newItem[key] = item[key].replace(regexp, highlightString)
         }
@@ -45,10 +56,6 @@ const doSearch = (items, value) => {
 
   Terms(newItems)
 }
-
-const setLocationHashTag = (text) => (location.hash = `#/${encodeURIComponent(text)}`)
-
-const getLocationHash = () => decodeURIComponent(location.hash.substring(2))
 
 const doSelectSearch = (tag) => {
   document.querySelector('html').scrollIntoView()
@@ -94,6 +101,7 @@ const Terms = (items) => {
   const selectTag = (e) => {
     doSelectSearch(`#${e.target.textContent}`)
   }
+  items.sort(byName)
   const wiredTerms = wire(document)`
     <div id="items" class="items">
       ${items.map((item) => {
@@ -101,25 +109,41 @@ const Terms = (items) => {
           /<img src="([^"]*)"/g,
           '<img class="lazyload" data-src="$1"'
         )
+
+        const resources = wire(item.resources)`
+          <p>
+            ${item.resources.map((resource) => {
+              return wire()`<a class="resource" href="${resource}">${resource}</a>`
+            })}
+          </p>
+        `
+
+        const tags = wire(item.tags)`
+          <p>
+            ${item.tags.map((tag) => {
+              return wire()`<span class="tag" onclick="${selectTag}">${{
+                html: tag,
+              }}</span>`
+            })}
+          </p>
+        `
+
+        const alternative = wire({ alt: item.alternative })`
+          <p><em>${{ html: item.alternative }}</em></p>
+        `
+
         return wire(item)`
             <article class="item" hidden=${item.hidden}>
               <h2 class="item-heading">${{ html: item.name }}</h2>
-              <p><em>${{ html: item.alternative }}</em></p>
+              ${item.alternative ? alternative : null}
               <div class="item-content">
                   ${{ html: content }}
               </div>
-              <p>
-                ${item.resources.map(({ resource }) => {
-                  return wire(resource)`<a class="resource" href="${resource}">${resource}</a>`
-                })}
-              </p>
-              <p>
-                ${item.tags.map((tag) => {
-                  return wire({ tag })`<span class="tag" onclick="${selectTag}">${{
-                    html: tag,
-                  }}</span>`
-                })}
-              </p>
+              ${item.resources ? resources : null}
+              <div class="side-by-side">
+                ${item.tags ? tags : null}
+                <p class="date">${new Date(item.updated).toISOString().split('T')[0]}</p>
+              </div>
             </article>
         `
       })}
@@ -160,7 +184,7 @@ const listenToHashChange = () => {
 
 // Fetch data and run
 
-fetch('./assets/data.json')
+fetch('data.json')
   .then((response) => {
     return response.json()
   })

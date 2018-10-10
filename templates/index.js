@@ -6,7 +6,7 @@ module.exports = (render, model) => render`
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="style.css">
     <title>
       ${model.site.title}
     </title>
@@ -15,7 +15,7 @@ module.exports = (render, model) => render`
   <body>
     <main class="main" />
 
-    <script type="module" src="assets/script.js"></script>
+    <script type="module" src="script.js"></script>
   </body>
 
   </html>

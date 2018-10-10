@@ -4,6 +4,7 @@
   "description": "Static builder of a glossary web app",
   "author": "Lukas Trumm",
   "licence": "MIT",
+  "main": "./build.js",
   "scripts": {
     "build": "node build.js",
     "watch": "chokidar \"*.js\" \"assets/\" \"terms/\" \"templates\" -c \"npm run build\"",
