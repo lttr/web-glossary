@@ -10,6 +10,7 @@ const hash = '#'
 // Global variables
 
 let originalItems
+let firstLoad = true
 
 // Local actions
 
@@ -105,10 +106,10 @@ const Terms = (items) => {
   const wiredTerms = wire(document)`
     <div id="items" class="items">
       ${items.map((item) => {
-        const content = item.html.replace(
-          /<img src="([^"]*)"/g,
-          '<img class="lazyload" data-src="$1"'
-        )
+        let content = item.html
+        if (firstLoad) {
+          content = item.html.replace(/<img src="([^"]*)"/g, '<img class="lazyload" data-src="$1"')
+        }
 
         const resources = wire(item.resources)`
           <p>
@@ -132,6 +133,10 @@ const Terms = (items) => {
           <p><em>${{ html: item.alternative }}</em></p>
         `
 
+        const updated = wire({ updated: item.updated })`
+          <p class="date">${new Date(item.updated).toISOString().split('T')[0]}</p>
+        `
+
         return wire(item)`
             <article class="item" hidden=${item.hidden}>
               <h2 class="item-heading">${{ html: item.name }}</h2>
@@ -142,14 +147,13 @@ const Terms = (items) => {
               ${item.resources ? resources : null}
               <div class="side-by-side">
                 ${item.tags ? tags : null}
-                <p class="date">${new Date(item.updated).toISOString().split('T')[0]}</p>
+                ${item.updated ? updated : null}
               </div>
             </article>
         `
       })}
     </div>
   `
-  new IOlazy()
   return wiredTerms
 }
 
@@ -196,4 +200,5 @@ fetch('data.json')
     new IOlazy()
     addDrawIoTitles()
     listenToHashChange()
+    firstLoad = false
   })

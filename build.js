@@ -7,12 +7,15 @@ const marked = require('marked')
 const path = require('path')
 const viperHTML = require('viperhtml')
 
-const glossaryConfig = require('./glossary.config.json')
-
 const templatesPath = path.join(__dirname, 'templates')
 const assetsDir = path.join(__dirname, 'assets')
 const distPath = path.join(process.cwd(), 'public')
 const contentDir = path.join(process.cwd(), 'content')
+const glossaryConfig = require(path.join(process.cwd(), 'glossary.config.json'))
+
+console.log(`Using sources from ${templatesPath}, and ${assetsDir}`)
+console.log(`Using content directory: ${contentDir}`)
+console.log(`Writing to destination direcotry: ${distPath}`)
 
 const build = async () => {
   // clear destination folder
@@ -49,6 +52,8 @@ const build = async () => {
   await fse.mkdirs(distPath)
   await fse.writeFile(`${distPath}/index.html`, layout)
   await fse.writeFile(`${distPath}/data.json`, serializedData)
+
+  console.log('Glossary was built')
 }
 
 const template = require(`${templatesPath}/index.js`)

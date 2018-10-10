@@ -4,7 +4,12 @@
   "description": "Static builder of a glossary web app",
   "author": "Lukas Trumm",
   "licence": "MIT",
-  "main": "./build.js",
+  "bin": {
+    "web-glossary": "build.js"
+  },
+  "engines": {
+    "node": ">=8.9.0"
+  },
   "scripts": {
     "build": "node build.js",
     "watch": "chokidar \"*.js\" \"assets/\" \"terms/\" \"templates\" -c \"npm run build\"",
