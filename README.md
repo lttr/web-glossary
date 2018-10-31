@@ -1,2 +1,2 @@
-# Glossary
+# Web glossary
 

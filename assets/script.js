@@ -111,7 +111,7 @@ const Terms = (items) => {
           content = item.html.replace(/<img src="([^"]*)"/g, '<img class="lazyload" data-src="$1"')
         }
 
-        const resources = wire(item.resources)`
+        const resources = () => wire(item.resources)`
           <p>
             ${item.resources.map((resource) => {
               return wire()`<a class="resource" href="${resource}">${resource}</a>`
@@ -119,7 +119,7 @@ const Terms = (items) => {
           </p>
         `
 
-        const tags = wire(item.tags)`
+        const tags = () => wire(item.tags)`
           <p>
             ${item.tags.map((tag) => {
               return wire()`<span class="tag" onclick="${selectTag}">${{
@@ -129,25 +129,24 @@ const Terms = (items) => {
           </p>
         `
 
-        const alternative = wire({ alt: item.alternative })`
+        const alternative = () => wire({ alt: item.alternative })`
           <p><em>${{ html: item.alternative }}</em></p>
         `
 
-        const updated = wire({ updated: item.updated })`
+        const updated = () => wire({ updated: item.updated })`
           <p class="date">${new Date(item.updated).toISOString().split('T')[0]}</p>
         `
-
         return wire(item)`
             <article class="item" hidden=${item.hidden}>
               <h2 class="item-heading">${{ html: item.name }}</h2>
-              ${item.alternative ? alternative : null}
+              ${item.alternative ? alternative() : null}
               <div class="item-content">
                   ${{ html: content }}
               </div>
-              ${item.resources ? resources : null}
+              ${item.resources ? resources() : null}
               <div class="side-by-side">
-                ${item.tags ? tags : null}
-                ${item.updated ? updated : null}
+                ${item.tags ? tags() : null}
+                ${item.updated ? updated() : null}
               </div>
             </article>
         `
