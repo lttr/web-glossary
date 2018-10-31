@@ -16,6 +16,11 @@
     "serve": "cd public && live-server --watch=. --open=.",
     "start": "run-p -l watch serve"
   },
+  "files": [
+    "build.js",
+    "assets/*",
+    "templates/*"
+  ],
   "devDependencies": {
     "chokidar-cli": "^1.2.1",
     "front-matter": "^2.3.0",
