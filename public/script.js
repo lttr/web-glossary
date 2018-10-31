@@ -1,67 +1,40 @@
 import { bind, wire } from './hyperhtml.min.js'
 import { IOlazy } from './iolazy.js'
 
-// Constants
-
-const searchableKeys = ['name', 'alternative']
-const highlightString = '<span class="search-highlight">$1</span>'
-const hash = '#'
-
 // Global variables
 
-let originalItems
+let firstLoad = true
+let markInstance
 
 // Local actions
 
-// const byUpdatedDateDesc = (itemA, itemB) => itemA.updated < itemB.updated
-
 const byName = (itemA, itemB) => itemA.name > itemB.name
 
-const contains = (sourceString, searchString) =>
-  sourceString.toLocaleLowerCase().includes(searchString.toLocaleLowerCase())
+const setLocationHashTag = (text) => (location.hash = `#${encodeURIComponent(text)}`)
 
-const setLocationHashTag = (text) => (location.hash = `#/${encodeURIComponent(text)}`)
+const getLocationHash = () => decodeURIComponent(location.hash.substring(1))
 
-const getLocationHash = () => decodeURIComponent(location.hash.substring(2))
+const doSearch = (value) => {
+  const searchString = value
 
-const doSearch = (items, value) => {
-  const searchString = value.trim()
-  const newItems = items.map((item) => {
-    const newItem = Object.assign({}, item)
-    let found = false
+  const itemsElement = document.querySelector('#items')
+  const allItemElements = document.querySelectorAll('.item')
 
-    if (searchString.startsWith(hash)) {
-      const searchTokenNoFlag = searchString.substring(1)
-      const regexp = new RegExp(`(${searchTokenNoFlag})`, 'gi')
-      newItem.tags = item.tags.map((tag) => {
-        if (contains(tag, searchTokenNoFlag)) {
-          found = true
-          return tag.replace(regexp, highlightString)
-        }
-        return tag
-      })
-    } else {
-      const regexp = new RegExp(`(${searchString})`, 'gi')
-      searchableKeys.forEach((key) => {
-        if (item[key] && contains(item[key], searchString)) {
-          found = true
-          newItem[key] = item[key].replace(regexp, highlightString)
-        }
-      })
-    }
+  if (!searchString) {
+    allItemElements.forEach((item) => (item.hidden = false))
+    markInstance && markInstance.unmark()
+  }
 
-    newItem.hidden = !found
-    return newItem
+  const foundItemNodes = new Set()
+
+  markInstance = new Mark(itemsElement) // eslint-disable-line no-undef
+  markInstance.mark(searchString, {
+    ignoreJoiners: true,
+    separateWordSearch: false,
+    each: (markedElement) => foundItemNodes.add(markedElement.closest('.item')),
   })
 
-  Terms(newItems)
-}
-
-const doSelectSearch = (tag) => {
-  document.querySelector('html').scrollIntoView()
-  document.getElementById('search-input').value = tag
-  doSearch(originalItems, tag)
-  setLocationHashTag(tag)
+  allItemElements.forEach((item) => (item.hidden = !foundItemNodes.has(item)))
 }
 
 // Components
@@ -72,13 +45,10 @@ const Heading = (site) => wire()`
   </h1>
 `
 
-const SearchBox = (items, value) => {
-  if (value) {
-    doSearch(items, value)
-  }
+const SearchBox = (value) => {
   const search = (e) => {
-    setLocationHashTag(e.target.value)
-    doSearch(items, e.target.value)
+    setLocationHashTag(value)
+    doSearch(e.target.value)
   }
   return wire()`
     <div id="search-box" class="search-box">
@@ -99,18 +69,23 @@ const SearchBox = (items, value) => {
 
 const Terms = (items) => {
   const selectTag = (e) => {
-    doSelectSearch(`#${e.target.textContent}`)
+    const tag = e.target.textContent
+    setLocationHashTag(tag)
+    document.querySelector('html').scrollIntoView()
+    document.getElementById('search-input').value = tag
+    doSearch(`#${tag}`)
   }
   items.sort(byName)
   const wiredTerms = wire(document)`
     <div id="items" class="items">
       ${items.map((item) => {
-        const content = item.html.replace(
-          /<img src="([^"]*)"/g,
-          '<img class="lazyload" data-src="$1"'
-        )
+        let content = item.html
+        if (firstLoad) {
+          content = content.replace(/<p>\s*<img/gm, '<p class="image-wrapper"><img')
+          content = content.replace(/<img src="([^"]*)"/g, '<img class="lazyload" data-src="$1"')
+        }
 
-        const resources = wire(item.resources)`
+        const resources = () => wire(item.resources)`
           <p>
             ${item.resources.map((resource) => {
               return wire()`<a class="resource" href="${resource}">${resource}</a>`
@@ -118,7 +93,7 @@ const Terms = (items) => {
           </p>
         `
 
-        const tags = wire(item.tags)`
+        const tags = () => wire(item.tags)`
           <p>
             ${item.tags.map((tag) => {
               return wire()`<span class="tag" onclick="${selectTag}">${{
@@ -128,38 +103,43 @@ const Terms = (items) => {
           </p>
         `
 
-        const alternative = wire({ alt: item.alternative })`
+        const alternative = () => wire({ alt: item.alternative })`
           <p><em>${{ html: item.alternative }}</em></p>
         `
 
+        const updated = () => wire({ updated: item.updated })`
+          <p class="date">${new Date(item.updated).toISOString().split('T')[0]}</p>
+        `
         return wire(item)`
             <article class="item" hidden=${item.hidden}>
               <h2 class="item-heading">${{ html: item.name }}</h2>
-              ${item.alternative ? alternative : null}
+              ${item.alternative ? alternative() : null}
               <div class="item-content">
                   ${{ html: content }}
               </div>
-              ${item.resources ? resources : null}
+              ${item.resources ? resources() : null}
               <div class="side-by-side">
-                ${item.tags ? tags : null}
-                <p class="date">${new Date(item.updated).toISOString().split('T')[0]}</p>
+                ${item.tags ? tags() : null}
+                ${item.updated ? updated() : null}
               </div>
             </article>
         `
       })}
     </div>
   `
-  new IOlazy()
   return wiredTerms
 }
 
 const App = (model) => {
   const render = bind(document.querySelector('main'))
   const locationHashValue = getLocationHash()
+  if (locationHashValue) {
+    doSearch(locationHashValue)
+  }
   render`
     <div class="main-content">
       ${Heading(model.site)}
-      ${SearchBox(model.items, locationHashValue)}
+      ${SearchBox(locationHashValue)}
       ${Terms(model.items)}
     </div>
   `
@@ -177,7 +157,7 @@ const listenToHashChange = () => {
   window.addEventListener('hashchange', () => {
     const locationHash = getLocationHash()
     if (locationHash) {
-      doSelectSearch(locationHash)
+      doSearch(locationHash)
     }
   })
 }
@@ -189,11 +169,11 @@ fetch('data.json')
     return response.json()
   })
   .then((data) => {
-    originalItems = data.items
     App(data)
   })
   .then(() => {
     new IOlazy()
     addDrawIoTitles()
     listenToHashChange()
+    firstLoad = false
   })

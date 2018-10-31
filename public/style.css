@@ -1,8 +1,18 @@
 /* global */
 
+:root {
+  --breakpoint: calc((800px - 100%) * 800);
+}
+
 body {
   font-family: 'Open Sans', sans-serif;
   overflow-y: scroll;
+}
+
+img {
+  max-width: 90%;
+  height: auto;
+  margin: 1em 0;
 }
 
 /* main */
@@ -16,7 +26,7 @@ body {
 .main-content {
   min-width: 50%;
   max-width: 100%;
-  width: calc((600px - 100%) * 600);
+  width: var(--breakpoint);
 }
 
 .main-heading {
@@ -29,14 +39,19 @@ body {
 }
 
 .search-input {
-  min-width: 60%;
-  max-width: 100%;
-  width: calc((600px - 100%) * 600);
-  margin: 1em 0;
+  min-width: 50%;
+  max-width: 90%;
+  width: var(--breakpoint);
+  margin: 1rem 0;
   padding: 3px;
-  font-size: 1.2em;
+  font-size: 1rem;
+  line-height: 1.1rem;
   border: 1px solid #999;
   border-radius: 3px;
+}
+
+.search-input::placeholder {
+  color: #bbb;
 }
 
 .search-highlight {
@@ -46,17 +61,23 @@ body {
 /* item */
 
 .item {
-  margin-bottom: 3em;
+  margin-bottom: 3rem;
+}
+
+.image-wrapper {
+  display: flex;
+  justify-content: center; /* center the image */
+  align-items: center; /* make sure it keeps its ratio */
 }
 
 .resource {
   display: block;
-  margin: 4px;
+  margin: 0 4px;
 }
 
 .tag {
   padding: 2px 7px 3px 6px;
-  margin: 3px;
+  margin: 0 3px;
   border-radius: 3px;
   background-color: #ddd;
 }
@@ -67,7 +88,7 @@ body {
 }
 
 .date {
-  margin: 3px;
+  margin: 0 3px;
   color: #bbb;
 }
 
